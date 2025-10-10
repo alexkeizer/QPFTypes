@@ -19,3 +19,10 @@ name = "Test"
 
 [[lean_lib]]
 name = "ITree"
+
+[[lean_lib]]
+name = "StateMachine"
+
+[[lean_exe]]
+name = "StateStream"
+root = "StateMachine.StreamExample"
