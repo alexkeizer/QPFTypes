@@ -1,0 +1,21 @@
+name = "QpfTypes"
+version = "0.1.0"
+keywords = []
+defaultTargets = ["Qpf"]
+
+[leanOptions]
+# weak.linter.mathlibStandardSet = true
+maxSynthPendingDepth = 3
+
+[[require]]
+name = "mathlib"
+scope = "leanprover-community"
+
+[[lean_lib]]
+name = "Qpf"
+
+[[lean_lib]]
+name = "Test"
+
+[[lean_lib]]
+name = "ITree"
