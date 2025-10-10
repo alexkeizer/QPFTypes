@@ -62,21 +62,31 @@ Given two pointed coalgebras `c` and `d`, return the union coalgebra which embed
 both coalgebras, with `c` as the designated point, together with the state of the
 union coalgebra which represents `d`.
 -/
-def union (c d : StateCofix F α) : Σ (un : StateCofix F α), un.σ :=
-  let un : StateCofix F α := {
-    σ := c.σ ⊕ d.σ
-    s := .inl c.s
-    dest' s := match s with
-           | .inl s => MvFunctor.map (TypeVec.id ::: .inl) (c.dest' s)
-           | .inr s => MvFunctor.map (TypeVec.id ::: .inr) (d.dest' s)
-  }
-  ⟨un, .inr d.s⟩
+def union (c d : StateCofix F α) : StateCofix F α where
+  σ := c.σ ⊕ d.σ
+  s := .inl c.s
+  dest' s := match s with
+          | .inl s => MvFunctor.map (TypeVec.id ::: .inl) (c.dest' s)
+          | .inr s => MvFunctor.map (TypeVec.id ::: .inr) (d.dest' s)
+
 
 def Bisim : StateCofix F α → StateCofix F α → Prop := fun c d =>
-  let ⟨un, d'⟩ := c.union d
-  BisimStates un.s d'
+  let un := c.union d
+  BisimStates (self := un) (.inl c.s) (.inr d.s)
 
 infixl:60 " ~ " => Bisim
+
+section UnionLemmas
+
+theorem union_dest_eq_left (c d : StateCofix F α) (s : c.σ) :
+    (TypeVec.id ::: Sum.inl) <$$> c.dest' s = (c.union d).dest' (.inl s) :=
+  rfl
+
+theorem union_dest_eq_right (c d : StateCofix F α) (s : d.σ) :
+    (TypeVec.id ::: Sum.inr) <$$> d.dest' s = (c.union d).dest' (.inr s) :=
+  rfl
+
+end UnionLemmas
 
 /-!
 ## Conversions to/from default Cofix type
@@ -163,9 +173,17 @@ def toCofix (self : StateCofixFinal F α) : Cofix F α :=
   have h := by
     -- to show: two bisimilar coalgebras generate the same cofix
     -- This is true, and proving it shouldn't be too hard
-    intro a b h_bisim
-    simp [StateCofix.toCofix]
-    sorry
+    rintro a b ⟨R, h_bisim, h_R⟩
+    let R' : Cofix F α → Cofix F α → Prop := fun x y =>
+      ∃ (s : a.σ) (t : b.σ),
+          R (.inl s) (.inr t)
+          ∧ x = StateCofix.toCofix { a with s := s }
+          ∧ y = StateCofix.toCofix { b with s := t }
+    apply MvQPF.Cofix.bisim R'
+    · simp only [forall_exists_index, and_imp, R']
+      rintro _ _ s t hR rfl rfl
+      sorry
+    · exact ⟨_, _, h_R, rfl, rfl⟩
   Quot.lift StateCofix.toCofix h self
 
 def ofCofix (fix : Cofix F α) : StateCofixFinal F α :=
