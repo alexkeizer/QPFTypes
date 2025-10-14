@@ -12,9 +12,14 @@ variable {n} (F : TypeVec.{u} (n + 1) → Type u) [MvQPF F]
 /-- A pointed coalgebra -/
 structure Coalg (α : TypeVec.{u} n) : Type (u+1) where
   corec ::
-  {σ : Type u}
-  (dest' : σ → F (α ::: σ))
-  (s : σ)
+    {σ : Type u}
+    (dest' : σ → F (α ::: σ))
+    (s : σ)
+
+/-- info: @Coalg.corec n F α : {σ : Type u} → (σ → F (α ::: σ)) → σ → Coalg F α -/
+#guard_msgs (whitespace := lax) in 
+  variable {α} in
+  #check (@Coalg.corec _ F α)
 
 variable {F} {α : TypeVec.{u} n}
 
