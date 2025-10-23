@@ -17,7 +17,7 @@ structure Coalg (α : TypeVec.{u} n) : Type (u+1) where
     (s : σ)
 
 /-- info: @Coalg.corec n F α : {σ : Type u} → (σ → F (α ::: σ)) → σ → Coalg F α -/
-#guard_msgs (whitespace := lax) in 
+#guard_msgs (whitespace := lax) in
   variable {α} in
   #check (@Coalg.corec _ F α)
 
@@ -46,9 +46,6 @@ def IsBisim (R : self.σ → self.σ → Prop) : Prop :=
     ∀ s t, R s t →
       LiftR (RelLast _ R) (self.dest' s) (self.dest' t)
 
-def BisimStates (s t : self.σ) : Prop :=
-  ∃ R, IsBisim R ∧ R s t
-
 /-
 The following definition using `coinductive_fixpoint` fails
 -/
@@ -63,9 +60,9 @@ The following definition using `coinductive_fixpoint` fails
 
 
 /--
-Given two pointed coalgebras `c` and `d`, return the union coalgebra which embeds
-both coalgebras, with `c` as the designated point, together with the state of the
-union coalgebra which represents `d`.
+Given two pointed coalgebras `c` and `d`, return the disjoint union coalgebra which
+embeds both coalgebras, with `c` as the designated point, together with the state
+of the union coalgebra which represents `d`.
 -/
 def union (c d : Coalg F α) : Coalg F α where
   σ := c.σ ⊕ d.σ
@@ -77,7 +74,7 @@ def union (c d : Coalg F α) : Coalg F α where
 
 def Bisim : Coalg F α → Coalg F α → Prop := fun c d =>
   let un := c.union d
-  BisimStates (self := un) (.inl c.s) (.inr d.s)
+  ∃ R, IsBisim (self := un) R ∧ R (.inl c.s) (.inr d.s)
 
 infixl:60 " ~ " => Bisim
 
@@ -125,7 +122,7 @@ theorem toCofix_ofCofix (fix : Cofix F α) : toCofix (ofCofix fix) = fix := by
 
 theorem ofCofix_toCofix (self : Coalg F α) : ofCofix (toCofix self) ~ self := by
   simp only [toCofix, ofCofix]
-  simp only [Bisim, BisimStates, union]
+  simp only [Bisim, union]
   use fun
     | .inl s, .inr t => s = Cofix.corec self.dest' t
     | _,  _ => False
