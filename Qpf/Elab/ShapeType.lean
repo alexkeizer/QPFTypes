@@ -81,7 +81,7 @@ def Ctor.toInductiveCtor (s : ShapeType n) (params : Array Expr) (c : Ctor n) :
     TermElabM Lean.Constructor := do
   let retTy := mkAppN (.const s.name s.levelParams) params
   let retTy := c.args.foldr (init := retTy) fun arg retTy =>
-    Expr.forallE arg.name (params.get! arg.type) retTy .default
+    Expr.forallE arg.name (params[arg.type]!) retTy .default
   let retTy ← withNewBinderInfos (params.map (·.fvarId!, .implicit)) <|
     mkForallFVars params retTy
   trace[QPF] "{c.name} : {retTy}"

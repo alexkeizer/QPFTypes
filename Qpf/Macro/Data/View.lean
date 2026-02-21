@@ -18,7 +18,7 @@ inductive DataCommand where
 
 namespace DataCommand
 
-def fromSyntax : Syntax → CommandElabM DataCommand
+def fromSyntax : Syntax → TermElabM DataCommand
   | Syntax.atom _ "data"   => pure .Data
   | Syntax.atom _ "codata" => pure .Codata
   | stx => throwErrorAt stx "Expected either `data` or `codata`"
@@ -54,7 +54,7 @@ end DataCommand
 -/
 structure DataView where
   ref             : Syntax
-  declId          : TSyntax ``declId
+  declId          : Syntax
   modifiers       : Modifiers
   shortDeclName   : Name
   declName        : Name
@@ -63,6 +63,8 @@ structure DataView where
   type?           : Option Syntax
   ctors           : Array CtorView
   derivingClasses : Array DerivingClassView
+  /-- The declaration docstring, and whether it's Verso -/
+  docString?      : Option (TSyntax ``Lean.Parser.Command.docComment × Bool)
   -- further elements are changed from inductiveView
   command         : DataCommand
   liveBinders     : TSyntaxArray ``Parser.Term.binderIdent
@@ -75,17 +77,7 @@ structure DataView where
 
 
 def DataView.asInductive (view : DataView) : InductiveView
-  := {
-    ref             := view.ref
-    declId          := view.declId
-    modifiers       := view.modifiers
-    shortDeclName   := view.shortDeclName
-    declName        := view.declName
-    levelNames      := view.levelNames
-    binders         := view.binders
-    type?           := view.type?
-    ctors           := view.ctors
-    derivingClasses := view.derivingClasses
+  := { view with
     -- TODO: find out what these computed fields are, add support for them in `data`/`codata`
     computedFields  := #[]
     isClass := false
@@ -239,7 +231,7 @@ instance : ToString (DataView) := ⟨
   Raises (hopefully) more informative errors when `data` or `codata` are used with unsupported
   specifications
 -/
-def DataView.doSanityChecks (view : DataView) : CommandElabM Unit := do
+def DataView.doSanityChecks (view : DataView) : TermElabM Unit := do
   if view.liveBinders.isEmpty then
     if view.deadBinders.isEmpty then
       if view.command == .Codata then
@@ -264,46 +256,59 @@ def DataView.doSanityChecks (view : DataView) : CommandElabM Unit := do
 /-
   Heavily based on `inductiveSyntaxToView` from Lean.Elab.Inductive
 -/
-def dataSyntaxToView (modifiers : Modifiers) (decl : Syntax) : CommandElabM DataView :=
+def dataSyntaxToView (modifiers : Modifiers) (decl : Syntax) : TermElabM DataView :=
   withQPFTraceNode "dataSyntaxToView" (tag := "dataSyntaxToView") <| do
 
   -- `data`/`codata` declarations may be noncomputable (not sure about partial, but we allow it for now)
   -- checkValidInductiveModifier modifiers
 
   let (binders, type?) := expandOptDeclSig decl[2]
-
-  let declId  : TSyntax ``declId := ⟨decl[1]⟩
-  let ⟨name, declName, levelNames⟩ ← expandDeclId (← getCurrNamespace) (← getLevelNames) declId modifiers
-  -- addDeclarationRanges declName decl
+  let declId           := decl[1]
+  let ⟨name, declName, levelNames, docString?⟩ ← Term.expandDeclId (← getCurrNamespace) (← Term.getLevelNames) declId modifiers
+  addDeclarationRangesForBuiltin declName modifiers.stx decl
   let ctors      ← decl[4].getArgs.mapM fun ctor => withRef ctor do
     /-
     ```
     def ctor := leading_parser optional docComment >> "\n| " >> declModifiers >> rawIdent >> optDeclSig
     ```
     -/
-    let mut ctorModifiers ← elabModifiers ⟨ctor[2]⟩
+    let modifiersStx := ctor[2]
+    let mut ctorModifiers ← elabModifiers ⟨modifiersStx⟩
     if let some leadingDocComment := ctor[0].getOptional? then
       if ctorModifiers.docString?.isSome then
-        logErrorAt leadingDocComment "duplicate doc string"
-      ctorModifiers := { ctorModifiers with docString? := some ⟨leadingDocComment⟩ }
+        logErrorAt leadingDocComment "Duplicate doc string"
+      ctorModifiers := { ctorModifiers with
+        docString? := some (⟨leadingDocComment⟩, doc.verso.get (← getOptions)) }
     if ctorModifiers.isPrivate && modifiers.isPrivate then
-      throwError "invalid 'private' constructor in a 'private' inductive datatype"
+      let hint ← do
+        let .original .. := modifiersStx.getHeadInfo | pure .nil
+        let some range := modifiersStx[2].getRangeWithTrailing? | pure .nil
+        -- Drop the doc comment from both the `declModifiers` and outer `ctor`, as well as
+        -- everything after the constructor name (yielding invalid syntax with the desired range)
+        let previewSpan? := ctor.modifyArgs (·[2...4].toArray.modify 0 (·.modifyArgs (·[1...*])))
+        MessageData.hint "Remove `private` modifier from constructor" #[{
+          suggestion := ""
+          span? := Syntax.ofRange range
+          previewSpan?
+          toCodeActionTitle? := some fun _ => "Delete `private` modifier"
+        }]
+      throwError m!"Constructor cannot be marked `private` because it is already in a `private` inductive datatype" ++ hint
     if ctorModifiers.isProtected && modifiers.isPrivate then
-      throwError "invalid 'protected' constructor in a 'private' inductive datatype"
+      throwError "Constructor cannot be `protected` because it is in a `private` inductive datatype"
     checkValidCtorModifier ctorModifiers
     let ctorName := ctor.getIdAt 3
     let ctorName := declName ++ ctorName
     let ctorName ← withRef ctor[3] <| applyVisibility ctorModifiers ctorName
     let (binders, type?) := expandOptDeclSig ctor[4]
-    addDocString' ctorName ctorModifiers.docString?
+    addDeclarationRangesFromSyntax ctorName ctor ctor[3]
+    if modifiers.isMeta then
+      modifyEnv (addMeta · ctorName)
     return { ref := ctor, declId := ctor[3], modifiers := ctorModifiers, declName := ctorName, binders := binders, type? := type? : CtorView }
-  let classes ← liftCoreM <| getOptDerivingClasses decl[5]
-
+  let classes ← getOptDerivingClasses decl[6]
 
   let command ← DataCommand.fromSyntax decl[0]
   let (liveBinders, deadBinders) ← Macro.splitLiveAndDeadBinders binders.getArgs
   let (deadBinders, deadBinderNames) ← Macro.mkFreshNamesForBinderHoles deadBinders
-
 
   let view := {
     ref             := decl
@@ -311,7 +316,8 @@ def dataSyntaxToView (modifiers : Modifiers) (decl : Syntax) : CommandElabM Data
     derivingClasses := classes
     declId, modifiers, declName, levelNames
     binders, type?, ctors,
-    command, liveBinders, deadBinders, deadBinderNames
+    command, liveBinders, deadBinders, deadBinderNames,
+    docString?
   }
   withQPFTraceNode "elaborated view …" <| do
     trace[QPF] m!"{view}"

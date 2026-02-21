@@ -426,7 +426,7 @@ def mkType (view : DataView) (base : Term × Term) : CommandElabM Unit :=
 
   elabCommandAndTrace
     (header := m!"elaborating *curried* (co)fixpoint {view.declId} …")  <|← `(
-      abbrev $(view.declId) $view.deadBinders:bracketedBinder* :=
+      abbrev $(⟨view.declId⟩) $view.deadBinders:bracketedBinder* :=
         TypeFun.curried $uncurriedApplied
   )
 
@@ -441,7 +441,8 @@ def elabData : CommandElab := fun stx =>
   let modifiers ← elabModifiers ⟨stx[0]⟩
   let decl := stx[1]
 
-  let view ← dataSyntaxToView modifiers decl
+  let view ← runTermElabM fun _ =>
+    dataSyntaxToView modifiers decl
   let view ← preProcessCtors view -- Transforms binders into simple lambda types
 
   let (nonRecView, ⟨r, shape, _P, eff⟩) ← runTermElabM fun _ => do

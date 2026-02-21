@@ -10,7 +10,7 @@ open Lean.Parser.Tactic (inductionAlt)
    α      → R α       → List (R α) → R α
   [nonRec,  directRec,  composed        ]
 -/
-inductive RecursionForm :=
+inductive RecursionForm where
   | nonRec (stx : Term)
   | directRec
   | composed (stx : Term) -- Not supported yet
