@@ -174,7 +174,8 @@ private theorem Cofix.bisim_aux {α : TypeVec n} (r : Cofix F α → Cofix F α 
   have h₀ : (TypeVec.id ::: Quot.mk r ∘ Quot.mk Mcongr) <$$> QPF.abs a.dest =
             (TypeVec.id ::: Quot.mk r ∘ Quot.mk Mcongr) <$$> QPF.abs b.dest := by
     have h := h (Quot.mk Mcongr a) (Quot.mk Mcongr b) r'ab
-    simpa [Cofix.dest, ← comp_map, ← appendFun_comp] using h
+    simp only [dest, ← comp_map] at h
+    grind
   have h₁ : ∀ u v, Mcongr u v → Quot.mk r' u = Quot.mk r' v := by grind
   let f : Quot r → Quot r' := Quot.lift (Quot.lift (Quot.mk r') h₁) <| by
     intro c d
@@ -209,9 +210,9 @@ theorem Cofix.bisim {α : TypeVec n} (r : Cofix F α → Cofix F α → Prop)
   intro x y rxy
   rcases (liftR_iff (fun a b => RelLast α r b) (Cofix.dest x) (Cofix.dest y)).mp (h x y rxy)
     with ⟨a, f₀, f₁, dxeq, dyeq, h'⟩
-  rw [dxeq, dyeq, ← abs_map, ← abs_map, MvPFunctor.map_eq, MvPFunctor.map_eq]
+  erw [dxeq, dyeq, ← abs_map, ← abs_map, MvPFunctor.map_eq, MvPFunctor.map_eq]
   rw [← split_dropFun_lastFun f₀, ← split_dropFun_lastFun f₁]
-  rw [appendFun_comp_splitFun, appendFun_comp_splitFun]
+  erw [appendFun_comp_splitFun, appendFun_comp_splitFun]
   erw [id_comp, id_comp]
   congr 2
   funext i j
@@ -230,7 +231,7 @@ theorem Cofix.dest_corec {α : TypeVec n} {β : Type u} (g : β → F (α ::: β
     Cofix.dest (Cofix.corec g x) = (id ::: Cofix.corec g) <$$> g x := by
   unfold Cofix.dest Cofix.corec
   dsimp
-  rw [corecF_eq, abs_map, abs_repr, ← QPF.comp_map, ← appendFun_comp, id_comp]
+  erw [corecF_eq, abs_map, abs_repr, ← QPF.comp_map, ← appendFun_comp, id_comp]
   rfl
 
 @[simp, grind =]
@@ -267,7 +268,8 @@ theorem Cofix.abs_repr {α} (x : Cofix F α) : Quot.mk Mcongr (Cofix.repr x) = x
   apply Cofix.bisim_rel R
   · rintro a b rfl
     cases b using Quot.ind with | mk b =>
-    simp only [Cofix.dest, Cofix.repr, M.dest_corec, abs_map, Function.comp_def]
+    simp only [Cofix.dest, Cofix.repr]
+    erw [M.dest_corec, abs_map, Function.comp_def]
     rw [← QPF.comp_map, ← QPF.comp_map, QPF.abs_repr]
     congr 1
     apply eq_of_drop_last_eq

@@ -127,19 +127,13 @@ def M.corecContents {α : TypeVec.{u} n}
     M.Path P x ⟹ α
   | _, M.Path.root x a f h' i c =>
     have : a = g₀ b := by
-      rw [h, M.corecShape, PFunctor.M.dest_corec] at h'
-      cases h'
-      rfl
+      subst h; cases h'; rfl
     g₁ b i (P.castDropB this i c)
   | _, M.Path.child x a f h' j i c =>
     have h₀ : a = g₀ b := by
-      rw [h, M.corecShape, PFunctor.M.dest_corec] at h'
-      cases h'
-      rfl
+      subst h; cases h'; rfl
     have h₁ : f j = M.corecShape P g₀ g₂ (g₂ b (castLastB P h₀ j)) := by
-      rw [h, M.corecShape, PFunctor.M.dest_corec] at h'
-      cases h'
-      rfl
+      subst h; cases h'; rfl
     M.corecContents g₀ g₁ g₂ (f j) (g₂ b (P.castLastB h₀ j)) h₁ i c
 
 /-- Corecursor for M-type of `P` -/
@@ -193,6 +187,7 @@ theorem M.dest_corec' {α : TypeVec.{u} n} {β : Type u} (g₀ : β → P.A)
     M.dest P (M.corec' P g₀ g₁ g₂ x) = ⟨g₀ x, splitFun (g₁ x) (M.corec' P g₀ g₁ g₂ ∘ g₂ x)⟩ := by
   rfl
 
+set_option backward.isDefEq.respectTransparency false in
 theorem M.dest_corec {α : TypeVec n} {β : Type u} (g : β → P (α.append1 β)) (x : β) :
     M.dest P (M.corec P g x) = (TypeVec.id ::: M.corec P g) <$$> g x := by
   rw [M.corec, M.dest_corec']
@@ -245,6 +240,7 @@ theorem IsBisim.destruct {α : TypeVec n} {x y : M P α} (h : IsBisim P x y) :
   cases h with
   | step e₁ e₂ h' => exact ⟨_, _, _, _, e₁, e₂, h'⟩
 
+set_option backward.isDefEq.respectTransparency false in
 /-- Helper lemma for bisimulation proof -/
 private theorem M.bisim_lemma {α : TypeVec n} {a₁ : (mp P).A} {f₁ : (mp P).B a₁ ⟹ α} {a' : P.A}
     {f' : (P.B a').drop ⟹ α} {f₁' : (P.B a').last → M P α}

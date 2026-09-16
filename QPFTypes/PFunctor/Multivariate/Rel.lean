@@ -49,13 +49,13 @@ theorem liftP_iff {α : TypeVec n} (p : ∀ ⦃i⦄, α i → Prop) (x : P α) :
   · rintro ⟨y, hy⟩
     rcases h : y with ⟨a, f⟩
     refine ⟨a, fun i j => (f i j).val, ?_, fun i j => (f i j).property⟩
-    rw [← hy, h, map_eq]; rfl
+    erw [← hy, h, map_eq]; rfl
   rintro ⟨a, f, xeq, pf⟩
   exact ⟨⟨a, fun i j => ⟨f i j, pf i j⟩⟩, by rw [xeq]; rfl⟩
 
 theorem liftP_iff' {α : TypeVec n} (p : ∀ ⦃i⦄, α i → Prop) (a : P.A) (f : P.B a ⟹ α) :
     LiftP P p ⟨a, f⟩ ↔ ∀ i j, p (f i j) := by
-  simp only [liftP_iff]
+  erw [liftP_iff]
   constructor
   · rintro ⟨_, _, ⟨⟩, h⟩; exact h
   · intro h; exact ⟨a, f, rfl, h⟩
@@ -66,13 +66,13 @@ theorem liftR_iff {α : TypeVec n} (r : ∀ ⦃i⦄, α i → α i → Prop) (x 
   · rintro ⟨u, xeq, yeq⟩
     rcases h : u with ⟨a, f⟩
     exact ⟨a, fun i j => (f i j).val.1, fun i j => (f i j).val.2,
-      by rw [← xeq, h, map_eq]; rfl,
-      by rw [← yeq, h, map_eq]; rfl,
+      by erw [← xeq, h, map_eq]; rfl,
+      by erw [← yeq, h, map_eq]; rfl,
       fun i j => (f i j).property⟩
   rintro ⟨a, f₀, f₁, xeq, yeq, h⟩
   exact ⟨⟨a, fun i j => ⟨(f₀ i j, f₁ i j), h i j⟩⟩,
-    by rw [xeq, map_eq]; rfl,
-    by rw [yeq, map_eq]; rfl⟩
+    by erw [xeq, map_eq]; rfl,
+    by erw [yeq, map_eq]; rfl⟩
 
 theorem supp_eq {α : TypeVec n} (a : P.A) (f : P.B a ⟹ α) (i) :
     supp P ⟨a, f⟩ i = fun x => ∃ j, f i j = x := by
@@ -90,4 +90,3 @@ theorem supp_eq {α : TypeVec n} (a : P.A) (f : P.B a ⟹ α) (i) :
     exact hp i j
 
 end QPFTypes.MvPFunctor
-

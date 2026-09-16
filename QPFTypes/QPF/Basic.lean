@@ -126,11 +126,11 @@ theorem liftP_iff {α : TypeVec n} (p : ∀ ⦃i⦄, α i → Prop) (x : F α) :
   · rintro ⟨y, hy⟩
     rcases h : repr y with ⟨a, f⟩
     refine ⟨a, fun i j => (f i j).val, ?_, ?_⟩
-    · rw [← hy, ← abs_repr y, h, ← abs_map]; rfl
+    · erw [← hy, ← abs_repr y, h, ← abs_map]; rfl
     · intro i j; apply (f i j).property
   · rintro ⟨a, f, h₀, h₁⟩
     refine ⟨abs ⟨a, fun i j => ⟨f i j, h₁ i j⟩⟩, ?_⟩
-    rw [← abs_map, h₀]; rfl
+    erw [← abs_map, h₀]; rfl
 
 theorem liftR_iff {α : TypeVec n} (r : ∀ ⦃i⦄, α i → α i → Prop) (x y : F α) :
     LiftR r x y ↔ ∃ a f₀ f₁, x = abs ⟨a, f₀⟩ ∧ y = abs ⟨a, f₁⟩ ∧ ∀ i j, r (f₀ i j) (f₁ i j) := by
@@ -138,13 +138,13 @@ theorem liftR_iff {α : TypeVec n} (r : ∀ ⦃i⦄, α i → α i → Prop) (x 
   · rintro ⟨u, xeq, yeq⟩
     rcases h : repr u with ⟨a, f⟩
     refine ⟨a, fun i j => (f i j).val.fst, fun i j => (f i j).val.snd, ?_, ?_, ?_⟩
-    · rw [← xeq, ← abs_repr u, h, ← abs_map]; rfl
-    · rw [← yeq, ← abs_repr u, h, ← abs_map]; rfl
+    · erw [← xeq, ← abs_repr u, h, ← abs_map]; rfl
+    · erw [← yeq, ← abs_repr u, h, ← abs_map]; rfl
     · intro i j; exact (f i j).property
   · rintro ⟨a, f₀, f₁, xeq, yeq, h⟩
     refine ⟨abs ⟨a, fun i j => ⟨(f₀ i j, f₁ i j), h i j⟩⟩, ?_, ?_⟩
-    · rw [xeq, ← abs_map]; rfl
-    · rw [yeq, ← abs_map]; rfl
+    · erw [xeq, ← abs_map]; rfl
+    · erw [yeq, ← abs_map]; rfl
 
 /-- A qpf is said to be uniform if every polynomial functor
 representing a single value all have the same range. -/

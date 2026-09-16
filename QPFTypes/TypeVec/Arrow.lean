@@ -117,9 +117,8 @@ theorem eq_of_drop_last_eq {α β : TypeVec (n + 1)} {f g : α ⟹ β} (h₀ : d
 
 @[simp]
 theorem dropFun_splitFun {α α' : TypeVec (n + 1)} (f : drop α ⟹ drop α') (g : last α → last α') :
-    dropFun (splitFun f g) = f := by
-  funext i
-  simp [dropFun, splitFun, Fin.cases_succ]
+    dropFun (splitFun f g) = f :=
+  rfl
 
 /-- turn an equality into an arrow -/
 def Arrow.mp {α β : TypeVec n} (h : α = β) : α ⟹ β
@@ -150,8 +149,8 @@ theorem lastFun_from_append1_drop_last {α : TypeVec (n + 1)} :
 
 @[simp, grind =]
 theorem lastFun_splitFun {α α' : TypeVec (n + 1)} (f : drop α ⟹ drop α') (g : last α → last α') :
-    lastFun (splitFun f g) = g := by
-  simp [lastFun, splitFun, Fin.cases_zero]
+    lastFun (splitFun f g) = g :=
+  rfl
 
 @[simp]
 theorem dropFun_id {α : TypeVec (n + 1)} : dropFun (@TypeVec.id _ α) = id :=

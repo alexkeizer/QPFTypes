@@ -92,38 +92,38 @@ variable (βs : TypeVec.{u} n) (β : Type u)
   cases n
   · exact i.elim0
   · cases i using Fin.cases
-    <;> simp [append1, tail]
+    <;> rfl
 
-@[simp, grind =] theorem head_cons : (β <: βs).head = β := by simp [head, cons]
+@[simp, grind =] theorem head_cons : (β <: βs).head = β := by
+  grind [head, cons]
 @[simp, grind =] theorem tail_cons : (β <: βs).tail = βs := by
-  funext i; simp [tail, cons]
+  funext i; grind [tail, cons]
 
 @[simp, grind =] theorem cons_head_tail {βs : TypeVec (n+1)} :
     βs.head <: βs.tail = βs := by
-  funext i; cases i using Fin.lastCases <;> simp [cons, head, tail]
+  funext i; cases i using Fin.lastCases
+  <;> grind [cons, head, tail]
 
 end HeadTail
 
 instance last.inhabited (α : TypeVec (n + 1)) [Inhabited (α 0)] : Inhabited (last α) :=
   ⟨show α 0 from default⟩
 
-theorem drop_append1 {α : TypeVec n} {β : Type _} {i : Fin n} : drop (append1 α β) i = α i := by
-  simp [drop, append1, Fin.cases_succ]
+theorem drop_append1 {α : TypeVec n} {β : Type _} {i : Fin n} : drop (append1 α β) i = α i :=
+  rfl
 
 @[simp]
 theorem drop_append1' {α : TypeVec n} {β : Type _} : drop (append1 α β) = α :=
   funext fun _ => drop_append1
 
-theorem last_append1 {α : TypeVec n} {β : Type _} : last (append1 α β) = β := by
-  simp [last, append1, Fin.cases_zero]
+theorem last_append1 {α : TypeVec n} {β : Type _} : last (append1 α β) = β :=
+  rfl
 
 @[simp]
 theorem append1_drop_last (α : TypeVec (n + 1)) : append1 (drop α) (last α) = α := by
   funext i
-  refine Fin.cases ?_ ?_ i
-  · simp [append1, last, Fin.cases_zero]
-  · intro j
-    simp [append1, drop, Fin.cases_succ]
+  cases i using Fin.cases
+  <;> rfl
 
 /-- cases on `(n+1)-length` vectors -/
 @[elab_as_elim]
@@ -172,4 +172,3 @@ protected theorem casesCons_append1 (n : Nat) {β : TypeVec (n + 1) → Sort _}
 def «repeat» : ∀ (n : Nat), Type u → TypeVec n
   | 0, _ => Fin.elim0
   | Nat.succ i, t => append1 («repeat» i t) t
-

@@ -223,7 +223,7 @@ theorem w_map_wMk {α β : TypeVec n} (g : α ⟹ β) (a : P.A) (f' : P.drop.B a
   rw [this]
   dsimp
   have h := MvPFunctor.map_eq P.wp g
-  rw [wMk_eq, wMk_eq, wMap, h]
+  erw [wMk_eq, wMk_eq, wMap, h]
   erw [comp_wPathCasesOn]
   rfl
 
@@ -235,6 +235,7 @@ abbrev objAppend1 {α : TypeVec n} {β : Type u} (a : P.A) (f' : P.drop.B a ⟹ 
     (f : P.last.B a → β) : P (α ::: β) :=
   ⟨a, splitFun f' f⟩
 
+set_option backward.isDefEq.respectTransparency false in
 theorem map_objAppend1 {α γ : TypeVec n} (g : α ⟹ γ) (a : P.A) (f' : P.drop.B a ⟹ α)
     (f : P.last.B a → P.W α) :
     P.map (appendFun g (P.wMap g)) (P.objAppend1 a f' f) =
@@ -256,10 +257,10 @@ def wDest' {α : TypeVec.{u} n} : P.W α → P (α.append1 (P.W α)) :=
   P.wRec fun a f' f _ => ⟨a, splitFun f' f⟩
 
 theorem wDest'_wMk {α : TypeVec n} (a : P.A) (f' : P.drop.B a ⟹ α) (f : P.last.B a → P.W α) :
-    P.wDest' (P.wMk a f' f) = ⟨a, splitFun f' f⟩ := by rw [wDest', wRec_eq]
+    P.wDest' (P.wMk a f' f) = ⟨a, splitFun f' f⟩ := by erw [wDest', wRec_eq]
 
 theorem wDest'_wMk' {α : TypeVec n} (x : P (α.append1 (P.W α))) : P.wDest' (P.wMk' x) = x := by
-  obtain ⟨a, f⟩ := x; rw [wMk', wDest'_wMk, split_dropFun_lastFun]
+  obtain ⟨a, f⟩ := x; erw [wMk', wDest'_wMk, split_dropFun_lastFun]
 
 end MvPFunctor
 end QPFTypes

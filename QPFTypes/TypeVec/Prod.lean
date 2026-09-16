@@ -86,14 +86,14 @@ def prod.mk : ∀ {n} {α β : TypeVec.{u} n} (i : Fin n), α i → β i → (α
 theorem prod_fst_mk {α β : TypeVec n} (i : Fin n) (a : α i) (b : β i) :
     TypeVec.prod.fst i (prod.mk i a b) = a := by
   induction i using Fin.succRecOn with
-  | zero n => simp [prod.fst, prod.mk]
+  | zero n => rfl
   | succ n j ih => exact @ih (drop α) (drop β) a b
 
 @[simp]
 theorem prod_snd_mk {α β : TypeVec n} (i : Fin n) (a : α i) (b : β i) :
     TypeVec.prod.snd i (prod.mk i a b) = b := by
   induction i using Fin.succRecOn with
-  | zero n => simp [prod.snd, prod.mk]
+  | zero n => rfl
   | succ n j ih => exact @ih (drop α) (drop β) a b
 
 /-- `prod` is functorial -/
@@ -151,20 +151,17 @@ theorem append_prod_appendFun {n} {α α' β β' : TypeVec.{u} n} {p p' q q' : T
 
 @[simp]
 theorem dropFun_diag {α} : dropFun (@prod.diag (n + 1) α) = prod.diag := by
-  funext i
-  simp [dropFun, prod.diag, Fin.cases_succ]
+  rfl
 
 @[simp]
 theorem dropFun_prod {α α' β β' : TypeVec (n + 1)} (f : α ⟹ β) (f' : α' ⟹ β') :
     dropFun (f ⊗' f') = (dropFun f ⊗' dropFun f') := by
-  funext i
-  simp [dropFun, prod.map, Fin.cases_succ]
+  rfl
 
 @[simp]
 theorem lastFun_prod {α α' β β' : TypeVec (n + 1)} (f : α ⟹ β) (f' : α' ⟹ β') :
     lastFun (f ⊗' f') = Prod.map (lastFun f) (lastFun f') := by
-  simp only [lastFun, prod.map, Fin.cases_zero]
-  funext ⟨a, b⟩; rfl
+  rfl
 
 @[simp]
 theorem prod_map_id {α β : TypeVec n} : (@TypeVec.id _ α ⊗' @TypeVec.id _ β) = id := prod_id
@@ -181,5 +178,3 @@ instance Curry.inhabited (F : TypeVec.{u} (n + 1) → Type _) (α : Type u) (β 
   I
 
 end curry
-
-
