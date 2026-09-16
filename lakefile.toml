@@ -2,11 +2,6 @@ name = "QPFTypes"
 version = "0.1.0"
 defaultTargets = ["QPFTypes"]
 
-[[require]]
-name = "mathlib"
-scope = "leanprover-community"
-rev = "v4.35.0-rc1"
-
 [[lean_lib]]
 name = "QPFTypes"
 

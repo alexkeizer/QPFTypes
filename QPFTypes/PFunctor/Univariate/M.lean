@@ -7,8 +7,6 @@ module
 
 public import QPFTypes.PFunctor.Univariate.Basic
 
-import Batteries.Logic
-
 /-!
 # M-types
 
@@ -262,7 +260,7 @@ theorem mk_dest (x : M F) : M.mk (dest x) = x := by
       ext a
       dsimp only [children]
       generalize hh : cast _ a = a'' at ⊢
-      rw [cast_eq_iff_heq] at hh
+      replace hh : a ≍ a'' := by grind
       revert a''
       rw [h]
       intro _ hh
